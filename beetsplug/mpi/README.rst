@@ -9,6 +9,7 @@ Developer
 To run and debug the application in PyCharm you can use the following configuration.
 
 * open `Run/Debug Configurations`
-* create new Flask server configuration
-* Target: ``<ProjectDir>\beets\beetsplug\mpi``
-* Environment Variables: ``FLASK_APP=beetsplug.mpi``
+* create new Python script configuration
+* Script Path: ``<ProjectDir>\beets``
+* Parameters: ``mpi``
+* Environment Variables: `PYTHONUNBUFFERED=1;FLASK_DEBUG=1;FLASK_ENV=development`

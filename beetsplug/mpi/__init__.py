@@ -24,6 +24,9 @@ def create_app(test_config=None):
     except OSError:
         pass
 
+    from beetsplug.mpi import utils
+    app.register_blueprint(utils.bp)
+
     from beetsplug.mpi import view
     app.register_blueprint(view.bp)
 
@@ -50,6 +53,7 @@ class WebPlugin(BeetsPlugin):
         app = create_app()
 
         def func(lib, opts, args):
+            opts.debug = (os.getenv('FLASK_ENV', False) == 'development')
             args = ui.decargs(args)
             if args:
                 self.config['host'] = args.pop(0)
