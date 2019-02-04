@@ -1,4 +1,5 @@
-from flask import Blueprint, render_template, jsonify, g, current_app
+from flask import Blueprint, render_template, g, current_app
+from beetsplug.mpi.utils import resource_list, resource_query, resource
 
 bp = Blueprint('view', __name__)
 
@@ -13,13 +14,26 @@ def home():
     return render_template('index.html')
 
 
-@bp.route('/foo/')
-def foo():
-    return jsonify(['hoho'])
-
-
 @bp.route('/album/')
 @bp.route('/album/query/')
+@resource_list('albums')
 def all_albums():
-    a = g.lib.albums()
-    return jsonify('Albums')
+    return g.lib.albums()
+
+
+@bp.route('/album/<idlist:ids>')
+@resource('albums')
+def get_album(id):
+    return g.lib.get_album(id)
+
+
+@bp.route('/album/query/<query:queries>')
+@resource_query('albums')
+def album_query(queries):
+    return g.lib.albums(queries)
+
+
+@bp.route('/item/query/<query:queries>')
+@resource_query('items')
+def item_query(queries):
+    return g.lib.items(queries)

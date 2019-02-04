@@ -17,10 +17,10 @@ def _rep(obj, expand=False):
     out = dict(obj)
 
     if isinstance(obj, beets.library.Item):
-        if app.config.get('INCLUDE_PATHS', False):
-            out['path'] = util.displayable_path(out['path'])
-        else:
-            del out['path']
+        #if app.config.get('INCLUDE_PATHS', False):
+        #    out['path'] = util.displayable_path(out['path'])
+        #else:
+        #    del out['path']
 
         # Filter all bytes attributes and convert them to strings.
         for key, value in out.items():
@@ -59,13 +59,38 @@ def json_generator(items, root, expand=False):
         else:
             yield ','
         yield json.dumps(_rep(item, expand=expand))
-        yield ']}'
+    yield ']}'
 
 
 def is_expand():
     """Returns whether the current request is for an expanded response."""
 
     return flask.request.args.get('expand') is not None
+
+
+def resource(name):
+    """Decorates a function to handle RESTful HTTP requests for a resource.
+    """
+
+    def make_responder(retriever):
+        def responder(ids):
+            entities = [retriever(id) for id in ids]
+            entities = [entity for entity in entities if entity]
+
+            if len(entities) == 1:
+                return flask.jsonify(_rep(entities[0], expand=is_expand()))
+            elif entities:
+                return app.response_class(
+                    json_generator(entities, root=name),
+                    mimetype='application/json'
+                )
+            else:
+                return flask.abort(404)
+
+        responder.__name__ = 'get_{0}'.format(name)
+        return responder
+
+    return make_responder
 
 
 def resource_list(name):
@@ -81,6 +106,26 @@ def resource_list(name):
             )
 
         responder.__name__ = 'all_{0}'.format(name)
+        return responder
+
+    return make_responder
+
+
+def resource_query(name):
+    """Decorates a function to handle RESTful HTTP queries for resources.
+    """
+
+    def make_responder(query_func):
+        def responder(queries):
+            return app.response_class(
+                json_generator(
+                    query_func(queries),
+                    root='results', expand=is_expand()
+                ),
+                mimetype='application/json'
+            )
+
+        responder.__name__ = 'query_{0}'.format(name)
         return responder
 
     return make_responder
