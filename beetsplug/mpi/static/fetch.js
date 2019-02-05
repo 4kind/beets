@@ -29,7 +29,23 @@ function addAlbums(albums) {
         let newDiv = document.createElement("div");
         newDiv.setAttribute('class', 'row album');
         newDiv.setAttribute('id', 'album_' + album.id);
-        newDiv.addEventListener('click', async function () {
+
+        let divArtist = document.createElement("div");
+        divArtist.setAttribute('class', 'col-sm-3');
+        divArtist.appendChild(document.createTextNode(album.albumartist));
+
+        let divYear = document.createElement("div");
+        divYear.setAttribute('class', 'col-sm-1');
+        divYear.appendChild(document.createTextNode(album.original_year));
+
+        let divAlbum = document.createElement("div");
+        divAlbum.setAttribute('class', 'col-sm-7');
+        divAlbum.appendChild(document.createTextNode(album.album));
+
+        let divPlus = document.createElement("div");
+        divPlus.setAttribute('class', 'col-sm-1');
+        divPlus.setAttribute("style", "cursor: pointer;");
+        divPlus.addEventListener('click', async function () {
 
             const rawResponse = await fetch('/item/query/album_id:' + album.id, {
                 method: 'GET',
@@ -42,35 +58,15 @@ function addAlbums(albums) {
             addTitles(content.results, newDiv);
         });
 
-        let newDiv1 = document.createElement("div");
-        newDiv1.setAttribute('class', 'col-sm-2');
-        newDiv1.appendChild(document.createTextNode(album.genre));
 
-        let newDiv2 = document.createElement("div");
-        newDiv2.setAttribute('class', 'col-sm-4');
-        newDiv2.appendChild(document.createTextNode(album.albumartist));
+        let divPlusIcon = document.createElement("i");
+        divPlusIcon.setAttribute('class', 'fas fa-plus-circle');
+        divPlus.appendChild(divPlusIcon);
 
-        let newDiv3 = document.createElement("div");
-        newDiv3.setAttribute('class', 'col-sm-1');
-        newDiv3.appendChild(document.createTextNode(album.original_year));
-
-        let newDiv4 = document.createElement("div");
-        newDiv4.setAttribute('class', 'col-sm-4');
-        newDiv4.appendChild(document.createTextNode(album.album));
-
-        let newDiv5 = document.createElement("div");
-        newDiv5.setAttribute('class', 'col-sm-1');
-        newDiv5.setAttribute("style", "cursor: pointer;");
-
-        let newDiv5i = document.createElement("i");
-        newDiv5i.setAttribute('class', 'fas fa-plus-circle');
-        newDiv5.appendChild(newDiv5i);
-
-        newDiv.appendChild(newDiv1);
-        newDiv.appendChild(newDiv2);
-        newDiv.appendChild(newDiv3);
-        newDiv.appendChild(newDiv4);
-        newDiv.appendChild(newDiv5);
+        newDiv.appendChild(divArtist);
+        newDiv.appendChild(divYear);
+        newDiv.appendChild(divAlbum);
+        newDiv.appendChild(divPlus);
 
         elAlbums.appendChild(newDiv);
     }
@@ -79,7 +75,7 @@ function addAlbums(albums) {
 
 function addTitles(titles, elAlbum) {
 
-    let container = elAlbum.querySelector("#" + elAlbum.id + '_titles');
+    let container = document.getElementById(elAlbum.id + '_titles');
     let plus = elAlbum.querySelector('.fa-plus-circle');
 
     if (container) {
@@ -90,45 +86,49 @@ function addTitles(titles, elAlbum) {
         plus.classList.remove('fa-plus-circle');
         plus.classList.add('fa-minus-circle');
 
+        let newTitlesRowDiv = document.createElement("div");
+        newTitlesRowDiv.setAttribute('class', 'row album-titles');
+        newTitlesRowDiv.setAttribute('id', elAlbum.id + '_titles');
 
         let titlesContainerDiv = document.createElement("div");
         titlesContainerDiv.setAttribute('class', 'container-fluid titles');
-        titlesContainerDiv.setAttribute('id', elAlbum.id + '_titles');
 
         let rowDiv = document.createElement("div");
         rowDiv.setAttribute('class', 'row');
 
-        let newDiv1 = document.createElement("div");
-        newDiv1.setAttribute('class', 'col-sm-2 font-weight-bold album-artist bg-secondary text-light');
-        newDiv1.appendChild(document.createTextNode('Track'));
+        let divDiv = document.createElement("div");
+        divDiv.setAttribute('class', 'col-sm-3');
 
-        let newDiv2 = document.createElement("div");
-        newDiv2.setAttribute('class', 'col-sm-4 font-weight-bold album-artist bg-secondary text-light');
-        newDiv2.appendChild(document.createTextNode('Title'));
+        let divTrack = document.createElement("div");
+        divTrack.setAttribute('class', 'col-sm-1 font-weight-bold bg-secondary text-light');
+        divTrack.appendChild(document.createTextNode('Track'));
 
-        let newDiv3 = document.createElement("div");
-        newDiv3.setAttribute('class', 'col-sm-1 font-weight-bold album-artist bg-secondary text-light');
-        newDiv3.appendChild(document.createTextNode('Length'));
+        let divTitle = document.createElement("div");
+        divTitle.setAttribute('class', 'col-sm-5 font-weight-bold bg-secondary text-light');
+        divTitle.appendChild(document.createTextNode('Title'));
 
-        let newDiv4 = document.createElement("div");
-        newDiv4.setAttribute('class', 'col-sm-4 font-weight-bold album-artist bg-secondary text-light');
-        newDiv4.appendChild(document.createTextNode('Format'));
+        let divLength = document.createElement("div");
+        divLength.setAttribute('class', 'col-sm-1 font-weight-bold bg-secondary text-light');
+        divLength.appendChild(document.createTextNode('Length'));
 
-        let newDiv5 = document.createElement("div");
-        newDiv5.setAttribute('class', 'col-sm-1 font-weight-bold album-artist bg-secondary text-light');
+        let divFormat = document.createElement("div");
+        divFormat.setAttribute('class', 'col-sm-1 font-weight-bold bg-secondary text-light');
+        divFormat.appendChild(document.createTextNode('Format'));
 
-        let newDiv5i = document.createElement("i");
-        newDiv5.appendChild(newDiv5i);
+        let divPlay = document.createElement("div");
+        divPlay.setAttribute('class', 'col-sm-1 font-weight-bold bg-secondary text-light');
 
-        rowDiv.appendChild(newDiv1);
-        rowDiv.appendChild(newDiv2);
-        rowDiv.appendChild(newDiv3);
-        rowDiv.appendChild(newDiv4);
-        rowDiv.appendChild(newDiv5);
+        rowDiv.appendChild(divDiv);
+        rowDiv.appendChild(divTrack);
+        rowDiv.appendChild(divTitle);
+        rowDiv.appendChild(divLength);
+        rowDiv.appendChild(divFormat);
+        rowDiv.appendChild(divPlay);
 
         titlesContainerDiv.appendChild(rowDiv);
+        newTitlesRowDiv.appendChild(titlesContainerDiv);
 
-        elAlbum.appendChild(titlesContainerDiv);
+        insertAfter(newTitlesRowDiv, elAlbum);
 
 
         for (i in titles) {
@@ -139,33 +139,36 @@ function addTitles(titles, elAlbum) {
             newDiv.setAttribute('id', 'title_' + title.id);
 
             let newDiv1 = document.createElement("div");
-            newDiv1.setAttribute('class', 'col-sm-2');
-            newDiv1.appendChild(document.createTextNode(title.track));
+            newDiv1.setAttribute('class', 'col-sm-3');
 
-            let newDiv2 = document.createElement("div");
-            newDiv2.setAttribute('class', 'col-sm-4');
-            newDiv2.appendChild(document.createTextNode(title.title));
+            let divTrack = document.createElement("div");
+            divTrack.setAttribute('class', 'col-sm-1');
+            divTrack.appendChild(document.createTextNode(title.track));
 
-            let newDiv3 = document.createElement("div");
-            newDiv3.setAttribute('class', 'col-sm-1');
-            newDiv3.appendChild(document.createTextNode(toMmSs(title.length)));
+            let divTitle = document.createElement("div");
+            divTitle.setAttribute('class', 'col-sm-5');
+            divTitle.appendChild(document.createTextNode(title.title));
 
-            let newDiv4 = document.createElement("div");
-            newDiv4.setAttribute('class', 'col-sm-4');
-            newDiv4.appendChild(document.createTextNode(title.format));
+            let divLength = document.createElement("div");
+            divLength.setAttribute('class', 'col-sm-1');
+            divLength.appendChild(document.createTextNode(toMmSs(title.length)));
 
-            let newDiv5 = document.createElement("div");
-            newDiv5.setAttribute("style", "cursor: pointer;");
+            let divFormat = document.createElement("div");
+            divFormat.setAttribute('class', 'col-sm-1');
+            divFormat.appendChild(document.createTextNode(title.format));
 
-            let newDiv5i = document.createElement("i");
-            newDiv5i.setAttribute('class', 'fas fa-play');
-            newDiv5.appendChild(newDiv5i);
+            let divPlay = document.createElement("div");
+            divPlay.setAttribute('class', 'col-sm-1');
+            let divPlayi = document.createElement("i");
+            divPlayi.setAttribute('class', 'fa fa-play');
+            divPlay.appendChild(divPlayi);
 
             newDiv.appendChild(newDiv1);
-            newDiv.appendChild(newDiv2);
-            newDiv.appendChild(newDiv3);
-            newDiv.appendChild(newDiv4);
-            newDiv.appendChild(newDiv5);
+            newDiv.appendChild(divTrack);
+            newDiv.appendChild(divTitle);
+            newDiv.appendChild(divLength);
+            newDiv.appendChild(divFormat);
+            newDiv.appendChild(divPlay);
 
             titlesContainerDiv.appendChild(newDiv);
         }
@@ -177,6 +180,10 @@ function addTitles(titles, elAlbum) {
     }
 
 }
+
+insertAfter = function (newNode, referenceNode) {
+    referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
+};
 
 toMmSs = function (number) {
     let sec_num = parseInt(number, 10),
