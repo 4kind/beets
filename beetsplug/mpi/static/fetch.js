@@ -14,13 +14,16 @@ class Playa {
         window.addEventListener('mouseup', mouseUp, false);
 
         let me = this;
+
         // makes playhead draggable
         this.playhead.addEventListener('mousedown', function () {
             me.mouseDown()
         }, false);
 
         // play button event listenter
-        this.pButton.addEventListener("click", play);
+        this.pButton.addEventListener("click", function () {
+            me.play()
+        });
 
         // makes timeline clickable
         this.timeline.addEventListener("click", function (event) {
@@ -41,7 +44,7 @@ class Playa {
 
     // returns click as decimal (.77) of the total timelineWidth
     clickPercent(event) {
-        return (event.clientX - getPosition(this.timeline)) / this.timelineWidth;
+        return (event.clientX - this.getPosition()) / this.timelineWidth;
     };
 
     // mouseDown EventListener
@@ -63,6 +66,26 @@ class Playa {
             this.pButton.className = "";
             this.pButton.className = "fa fa-play";
         }
+    }
+
+    //Play and Pause
+    play() {
+        // start music
+        if (this.music.paused) {
+            this.music.play();
+            this.pButton.className = "";
+            this.pButton.className = "fa fa-pause";
+        } else { // pause music
+            this.music.pause();
+            this.pButton.className = "";
+            this.pButton.className = "fa fa-play";
+        }
+    }
+
+    // getPosition
+    // Returns elements left position relative to top-left of viewport
+    getPosition() {
+        return this.timeline.getBoundingClientRect().left;
     }
 }
 
@@ -89,7 +112,7 @@ function mouseUp(event) {
 // mousemove EventListener
 // Moves playhead as user drags
 function moveplayhead(event) {
-    let newMargLeft = event.clientX - getPosition(playa.timeline);
+    let newMargLeft = event.clientX - playa.getPosition();
 
     if (newMargLeft >= 0 && newMargLeft <= playa.timelineWidth) {
         playa.playhead.style.marginLeft = newMargLeft + "px";
@@ -101,27 +124,6 @@ function moveplayhead(event) {
         playa.playhead.style.marginLeft = playa.timelineWidth + "px";
     }
 }
-
-//Play and Pause
-function play() {
-    // start music
-    if (playa.music.paused) {
-        playa.music.play();
-        playa.pButton.className = "";
-        playa.pButton.className = "fa fa-pause";
-    } else { // pause music
-        playa.music.pause();
-        playa.pButton.className = "";
-        playa.pButton.className = "fa fa-play";
-    }
-}
-
-// getPosition
-// Returns elements left position relative to top-left of viewport
-function getPosition(el) {
-    return el.getBoundingClientRect().left;
-}
-
 
 document.getElementById('album_query').addEventListener('click', async function () {
     let queryVal = document.getElementById('query').value,
@@ -316,7 +318,7 @@ function addTitles(titles, elAlbum, playa) {
 playerReload = function (music) {
     music.pause();
     music.load();
-    play();
+    playa.play();
 };
 
 markPlayedTrack = function (divRow) {
