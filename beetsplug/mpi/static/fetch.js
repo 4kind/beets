@@ -1,3 +1,109 @@
+let music = document.getElementById('music');
+let duration = music.duration; // Duration of audio clip, calculated here for embedding purposes
+let pButton = document.getElementById('pButton'); // play button
+let playhead = document.getElementById('playhead'); // playhead
+let timeline = document.getElementById('timeline'); // timeline
+
+// timeline width adjusted for playhead
+let timelineWidth = timeline.offsetWidth - playhead.offsetWidth;
+
+// play button event listenter
+pButton.addEventListener("click", play);
+
+// timeupdate event listener
+music.addEventListener("timeupdate", timeUpdate, false);
+
+// makes timeline clickable
+timeline.addEventListener("click", function (event) {
+    moveplayhead(event);
+    music.currentTime = duration * clickPercent(event);
+}, false);
+
+// returns click as decimal (.77) of the total timelineWidth
+let clickPercent = function(event) {
+    return (event.clientX - getPosition(timeline)) / timelineWidth;
+};
+
+// makes playhead draggable
+playhead.addEventListener('mousedown', mouseDown, false);
+window.addEventListener('mouseup', mouseUp, false);
+
+// Boolean value so that audio position is updated only when the playhead is released
+let onplayhead = false;
+
+// mouseDown EventListener
+function mouseDown() {
+    onplayhead = true;
+    window.addEventListener('mousemove', moveplayhead, true);
+    music.removeEventListener('timeupdate', timeUpdate, false);
+}
+
+// mouseUp EventListener
+// getting input from all mouse clicks
+function mouseUp(event) {
+    if (onplayhead === true) {
+        moveplayhead(event);
+        window.removeEventListener('mousemove', moveplayhead, true);
+        // change current time
+        music.currentTime = duration * clickPercent(event);
+        music.addEventListener('timeupdate', timeUpdate, false);
+    }
+    onplayhead = false;
+}
+
+// mousemove EventListener
+// Moves playhead as user drags
+function moveplayhead(event) {
+    let newMargLeft = event.clientX - getPosition(timeline);
+
+    if (newMargLeft >= 0 && newMargLeft <= timelineWidth) {
+        playhead.style.marginLeft = newMargLeft + "px";
+    }
+    if (newMargLeft < 0) {
+        playhead.style.marginLeft = "0px";
+    }
+    if (newMargLeft > timelineWidth) {
+        playhead.style.marginLeft = timelineWidth + "px";
+    }
+}
+
+// timeUpdate
+// Synchronizes playhead position with current point in audio
+function timeUpdate() {
+    let playPercent = timelineWidth * (music.currentTime / duration);
+    playhead.style.marginLeft = playPercent + "px";
+    if (music.currentTime === duration) {
+        pButton.className = "";
+        pButton.className = "fa fa-play";
+    }
+}
+
+//Play and Pause
+function play() {
+    // start music
+    if (music.paused) {
+        music.play();
+        pButton.className = "";
+        pButton.className = "fa fa-pause";
+    } else { // pause music
+        music.pause();
+        pButton.className = "";
+        pButton.className = "fa fa-play";
+    }
+}
+
+// Gets audio file duration
+music.addEventListener("canplaythrough", function () {
+    duration = music.duration;
+}, false);
+
+// getPosition
+// Returns elements left position relative to top-left of viewport
+function getPosition(el) {
+    return el.getBoundingClientRect().left;
+}
+
+
 document.getElementById('album_query').addEventListener('click', async function () {
     let queryVal = document.getElementById('query').value,
         isQuery = queryVal.length > 0,
@@ -23,12 +129,12 @@ function addAlbums(albums) {
         elAlbums.removeChild(elAlbums.lastChild);
     }
 
-    for (i in albums) {
+    for (let i in albums) {
         let album = albums[i];
 
-        let newDiv = document.createElement("div");
-        newDiv.setAttribute('class', 'row album');
-        newDiv.setAttribute('id', 'album_' + album.id);
+        let divRow = document.createElement("div");
+        divRow.setAttribute('class', 'row album');
+        divRow.setAttribute('id', 'album_' + album.id);
 
         let divArtist = document.createElement("div");
         divArtist.setAttribute('class', 'col-sm-3');
@@ -44,9 +150,10 @@ function addAlbums(albums) {
 
         let divPlus = document.createElement("div");
         divPlus.setAttribute('class', 'col-sm-1');
-        divPlus.setAttribute("style", "cursor: pointer;");
-        divPlus.addEventListener('click', async function () {
+        divPlus.appendChild(document.createTextNode(''));
 
+
+        divRow.addEventListener('click', async function () {
             const rawResponse = await fetch('/item/query/album_id:' + album.id, {
                 method: 'GET',
                 headers: {
@@ -55,20 +162,15 @@ function addAlbums(albums) {
             });
             let content = await rawResponse.json();
 
-            addTitles(content.results, newDiv);
+            addTitles(content.results, divRow);
         });
 
+        divRow.appendChild(divArtist);
+        divRow.appendChild(divYear);
+        divRow.appendChild(divAlbum);
+        divRow.appendChild(divPlus);
 
-        let divPlusIcon = document.createElement("i");
-        divPlusIcon.setAttribute('class', 'fas fa-plus-circle');
-        divPlus.appendChild(divPlusIcon);
-
-        newDiv.appendChild(divArtist);
-        newDiv.appendChild(divYear);
-        newDiv.appendChild(divAlbum);
-        newDiv.appendChild(divPlus);
-
-        elAlbums.appendChild(newDiv);
+        elAlbums.appendChild(divRow);
     }
 }
 
@@ -76,16 +178,10 @@ function addAlbums(albums) {
 function addTitles(titles, elAlbum) {
 
     let container = document.getElementById(elAlbum.id + '_titles');
-    let plus = elAlbum.querySelector('.fa-plus-circle');
 
     if (container) {
         container.remove();
-    }
-
-    if (plus) {
-        plus.classList.remove('fa-plus-circle');
-        plus.classList.add('fa-minus-circle');
-
+    } else {
         let newTitlesRowDiv = document.createElement("div");
         newTitlesRowDiv.setAttribute('class', 'row album-titles');
         newTitlesRowDiv.setAttribute('id', elAlbum.id + '_titles');
@@ -130,13 +226,30 @@ function addTitles(titles, elAlbum) {
 
         insertAfter(newTitlesRowDiv, elAlbum);
 
+        music.addEventListener('ended', function () {
+            if (music.hasChildNodes()) {
+                music.removeChild(music.firstChild);
+                if (music.hasChildNodes()) {
+                    let src = music.firstChild.getAttribute('src');
+                    let playingDivRow = document.querySelector("[data-src='" + src + "']");
+                    unmarkPlayedTrack(playingDivRow);
+                    markPlayedTrack(playingDivRow);
 
-        for (i in titles) {
+                    // muß eventuell am ende immer gemacht werden
+                    playerReload(music);
+                }
+            }
+        });
+
+        for (let i in titles) {
             let title = titles[i];
+            let type = 'audio/' + title.format.toLowerCase();
 
-            let newDiv = document.createElement("div");
-            newDiv.setAttribute('class', 'row title');
-            newDiv.setAttribute('id', 'title_' + title.id);
+            let divRow = document.createElement("div");
+            divRow.setAttribute('class', 'row title');
+            divRow.setAttribute('id', 'title_' + title.id);
+            divRow.setAttribute('data-src', '/item/' + title.id + '/file');
+            divRow.setAttribute('data-type', type);
 
             let newDiv1 = document.createElement("div");
             newDiv1.setAttribute('class', 'col-sm-3');
@@ -155,31 +268,83 @@ function addTitles(titles, elAlbum) {
 
             let divFormat = document.createElement("div");
             divFormat.setAttribute('class', 'col-sm-1');
-            divFormat.appendChild(document.createTextNode(title.format));
+            divFormat.appendChild(document.createTextNode(type));
 
             let divPlay = document.createElement("div");
             divPlay.setAttribute('class', 'col-sm-1');
-            let divPlayi = document.createElement("i");
-            divPlayi.setAttribute('class', 'fa fa-play');
-            divPlay.appendChild(divPlayi);
+            divPlay.appendChild(document.createTextNode(''));
 
-            newDiv.appendChild(newDiv1);
-            newDiv.appendChild(divTrack);
-            newDiv.appendChild(divTitle);
-            newDiv.appendChild(divLength);
-            newDiv.appendChild(divFormat);
-            newDiv.appendChild(divPlay);
+            divRow.addEventListener('click', function () {
+                unmarkPlayedTrack(divRow);
+                markPlayedTrack(divRow);
+                removeTracks(music);
+                addTracks(music, divRow);
+                playerReload(music);
+            });
 
-            titlesContainerDiv.appendChild(newDiv);
+            divRow.appendChild(newDiv1);
+            divRow.appendChild(divTrack);
+            divRow.appendChild(divTitle);
+            divRow.appendChild(divLength);
+            divRow.appendChild(divFormat);
+            divRow.appendChild(divPlay);
+
+            titlesContainerDiv.appendChild(divRow);
         }
-
-    } else {
-        let minus = elAlbum.querySelector('.fa-minus-circle');
-        minus.classList.remove('fa-minus-circle');
-        minus.classList.add('fa-plus-circle');
     }
-
 }
+
+playerReload = function (music) {
+    music.pause();
+    music.load();
+    play();
+};
+
+markPlayedTrack = function (divRow) {
+    let playing = divRow.querySelectorAll(":not(:first-child)");
+    for (let i in playing) {
+        if (playing[i] instanceof HTMLElement) {
+            playing[i].classList.add('bg-info');
+        }
+    }
+};
+
+unmarkPlayedTrack = function (divRow) {
+    let playing = divRow.parentElement.querySelectorAll(".bg-info");
+    for (let i in playing) {
+        if (playing[i] instanceof HTMLElement) {
+            playing[i].classList.remove('bg-info');
+        }
+    }
+};
+
+removeTracks = function (music) {
+    while (music.hasChildNodes()) {
+        music.removeChild(music.lastChild);
+    }
+};
+
+addTracks = function (music, elem) {
+
+    let sibling = elem;
+
+    addSource(music, sibling);
+
+    while (sibling) {
+        if (sibling.nodeType === 1 && sibling !== elem) {
+            addSource(music, sibling);
+        }
+        sibling = sibling.nextSibling
+    }
+};
+
+addSource = function (music, sibling) {
+    let source = document.createElement('source');
+    source.setAttribute('src', sibling.dataset.src);
+    source.setAttribute('type', sibling.dataset.type);
+    music.appendChild(source);
+};
+
 
 insertAfter = function (newNode, referenceNode) {
     referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
@@ -198,3 +363,4 @@ toMmSs = function (number) {
     }
     return minutes + ':' + seconds;
 };
+

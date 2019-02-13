@@ -1,0 +1,42 @@
+div.row.album:hover, div.row.title:hover :not(:first-child) {
+    background-color: #dae0e5;
+    cursor: pointer;
+}
+
+#audioplayer {
+    width: 550px;
+    height: 46px;
+    border: solid;
+}
+
+#pButton, #prevButton, #nextButton {
+    height: 40px;
+    width: 40px;
+    border: none;
+    background-size: 50% 50%;
+    background-repeat: no-repeat;
+    background-position: center;
+    float: left;
+    outline: none;
+}
+
+
+#timeline {
+    width: 400px;
+    height: 20px;
+    margin-top: 10px;
+    margin-left: 10px;
+    float: left;
+    border-radius: 15px;
+    background: rgba(0, 0, 0, .3);
+
+}
+
+#playhead {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    margin-top: 1px;
+    background: rgba(0, 0, 0, 1);
+
+}
