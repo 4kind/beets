@@ -29,7 +29,9 @@ class Playa {
         }, false);
 
         // timeupdate event listener
-        this.music.addEventListener("timeupdate", timeUpdate, false);
+        this.music.addEventListener("timeupdate", function () {
+            me.timeUpdate()
+        }, false);
 
         // Gets audio file duration
         this.music.addEventListener("canplaythrough", function () {
@@ -46,7 +48,21 @@ class Playa {
     mouseDown() {
         this.onplayhead = true;
         window.addEventListener('mousemove', moveplayhead, true);
-        this.music.removeEventListener('timeupdate', timeUpdate, false);
+        let me = this;
+        this.music.removeEventListener('timeupdate', function () {
+            me.timeUpdate();
+        }, false);
+    }
+
+    // timeUpdate
+    // Synchronizes playhead position with current point in audio
+    timeUpdate() {
+        let playPercent = this.timelineWidth * (this.music.currentTime / this.duration);
+        this.playhead.style.marginLeft = playPercent + "px";
+        if (this.music.currentTime === this.duration) {
+            this.pButton.className = "";
+            this.pButton.className = "fa fa-play";
+        }
     }
 }
 
@@ -61,7 +77,11 @@ function mouseUp(event) {
         window.removeEventListener('mousemove', moveplayhead, true);
         // change current time
         playa.music.currentTime = playa.duration * playa.clickPercent(event);
-        playa.music.addEventListener('timeupdate', timeUpdate, false);
+
+        let pl = playa;
+        playa.music.addEventListener('timeupdate', function () {
+            pl.timeUpdate()
+        }, false);
     }
     playa.onplayhead = false;
 }
@@ -79,17 +99,6 @@ function moveplayhead(event) {
     }
     if (newMargLeft > playa.timelineWidth) {
         playa.playhead.style.marginLeft = playa.timelineWidth + "px";
-    }
-}
-
-// timeUpdate
-// Synchronizes playhead position with current point in audio
-function timeUpdate() {
-    let playPercent = playa.timelineWidth * (playa.music.currentTime / playa.duration);
-    playa.playhead.style.marginLeft = playPercent + "px";
-    if (playa.music.currentTime === playa.duration) {
-        playa.pButton.className = "";
-        playa.pButton.className = "fa fa-play";
     }
 }
 
