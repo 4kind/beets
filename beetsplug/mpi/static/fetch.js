@@ -11,9 +11,12 @@ class Playa {
     }
 
     addEvents() {
-        window.addEventListener('mouseup', mouseUp, false);
-
         let me = this;
+
+        window.addEventListener('mouseup', function (event) {
+            me.mouseUp(event)
+        }, false);
+
 
         // makes playhead draggable
         this.playhead.addEventListener('mousedown', function () {
@@ -87,27 +90,28 @@ class Playa {
     getPosition() {
         return this.timeline.getBoundingClientRect().left;
     }
+
+    // mouseUp EventListener
+    // getting input from all mouse clicks
+    mouseUp(event) {
+        if (playa.onplayhead === true) {
+            moveplayhead(event);
+            window.removeEventListener('mousemove', moveplayhead, true);
+            // change current time
+            playa.music.currentTime = playa.duration * playa.clickPercent(event);
+
+            let pl = playa;
+            playa.music.addEventListener('timeupdate', function () {
+                pl.timeUpdate()
+            }, false);
+        }
+        playa.onplayhead = false;
+    }
 }
 
 playa = new Playa();
 playa.addEvents();
 
-// mouseUp EventListener
-// getting input from all mouse clicks
-function mouseUp(event) {
-    if (playa.onplayhead === true) {
-        moveplayhead(event);
-        window.removeEventListener('mousemove', moveplayhead, true);
-        // change current time
-        playa.music.currentTime = playa.duration * playa.clickPercent(event);
-
-        let pl = playa;
-        playa.music.addEventListener('timeupdate', function () {
-            pl.timeUpdate()
-        }, false);
-    }
-    playa.onplayhead = false;
-}
 
 // mousemove EventListener
 // Moves playhead as user drags
