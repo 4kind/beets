@@ -1,101 +1,111 @@
-let music = document.getElementById('music');
-let duration = music.duration; // Duration of audio clip, calculated here for embedding purposes
-let pButton = document.getElementById('pButton'); // play button
-let playhead = document.getElementById('playhead'); // playhead
-let timeline = document.getElementById('timeline'); // timeline
+class Playa {
+    constructor() {
+        // Boolean value so that audio position is updated only when the playhead is released
+        this.onplayhead = false;
+        this.pButton = document.getElementById('pButton'); // play button
+        this.playhead = document.getElementById('playhead'); // playhead
+        this.timeline = document.getElementById('timeline'); // timeline
+        this.timelineWidth = this.timeline.offsetWidth - this.playhead.offsetWidth;
+        this.music = document.getElementById('music');
+        this.duration = this.music.duration; // Duration of audio clip, calculated here for embedding purposes
+    }
 
-// timeline width adjusted for playhead
-let timelineWidth = timeline.offsetWidth - playhead.offsetWidth;
+    addEvents() {
+        window.addEventListener('mouseup', mouseUp, false);
 
-// play button event listenter
-pButton.addEventListener("click", play);
+        let me = this;
+        // makes playhead draggable
+        this.playhead.addEventListener('mousedown', function () {
+            me.mouseDown()
+        }, false);
 
-// timeupdate event listener
-music.addEventListener("timeupdate", timeUpdate, false);
+        // play button event listenter
+        this.pButton.addEventListener("click", play);
 
-// makes timeline clickable
-timeline.addEventListener("click", function (event) {
-    moveplayhead(event);
-    music.currentTime = duration * clickPercent(event);
-}, false);
+        // makes timeline clickable
+        this.timeline.addEventListener("click", function (event) {
+            moveplayhead(event);
+            me.music.currentTime = me.duration * playa.clickPercent(event);
+        }, false);
 
-// returns click as decimal (.77) of the total timelineWidth
-let clickPercent = function(event) {
-    return (event.clientX - getPosition(timeline)) / timelineWidth;
-};
+        // timeupdate event listener
+        this.music.addEventListener("timeupdate", timeUpdate, false);
 
-// makes playhead draggable
-playhead.addEventListener('mousedown', mouseDown, false);
-window.addEventListener('mouseup', mouseUp, false);
+        // Gets audio file duration
+        this.music.addEventListener("canplaythrough", function () {
+            me.duration = me.music.duration;
+        }, false);
+    }
 
-// Boolean value so that audio position is updated only when the playhead is released
-let onplayhead = false;
+    // returns click as decimal (.77) of the total timelineWidth
+    clickPercent(event) {
+        return (event.clientX - getPosition(this.timeline)) / this.timelineWidth;
+    };
 
-// mouseDown EventListener
-function mouseDown() {
-    onplayhead = true;
-    window.addEventListener('mousemove', moveplayhead, true);
-    music.removeEventListener('timeupdate', timeUpdate, false);
+    // mouseDown EventListener
+    mouseDown() {
+        this.onplayhead = true;
+        window.addEventListener('mousemove', moveplayhead, true);
+        this.music.removeEventListener('timeupdate', timeUpdate, false);
+    }
 }
+
+playa = new Playa();
+playa.addEvents();
 
 // mouseUp EventListener
 // getting input from all mouse clicks
 function mouseUp(event) {
-    if (onplayhead === true) {
+    if (playa.onplayhead === true) {
         moveplayhead(event);
         window.removeEventListener('mousemove', moveplayhead, true);
         // change current time
-        music.currentTime = duration * clickPercent(event);
-        music.addEventListener('timeupdate', timeUpdate, false);
+        playa.music.currentTime = playa.duration * playa.clickPercent(event);
+        playa.music.addEventListener('timeupdate', timeUpdate, false);
     }
-    onplayhead = false;
+    playa.onplayhead = false;
 }
 
 // mousemove EventListener
 // Moves playhead as user drags
 function moveplayhead(event) {
-    let newMargLeft = event.clientX - getPosition(timeline);
+    let newMargLeft = event.clientX - getPosition(playa.timeline);
 
-    if (newMargLeft >= 0 && newMargLeft <= timelineWidth) {
-        playhead.style.marginLeft = newMargLeft + "px";
+    if (newMargLeft >= 0 && newMargLeft <= playa.timelineWidth) {
+        playa.playhead.style.marginLeft = newMargLeft + "px";
     }
     if (newMargLeft < 0) {
-        playhead.style.marginLeft = "0px";
+        playa.playhead.style.marginLeft = "0px";
     }
-    if (newMargLeft > timelineWidth) {
-        playhead.style.marginLeft = timelineWidth + "px";
+    if (newMargLeft > playa.timelineWidth) {
+        playa.playhead.style.marginLeft = playa.timelineWidth + "px";
     }
 }
 
 // timeUpdate
 // Synchronizes playhead position with current point in audio
 function timeUpdate() {
-    let playPercent = timelineWidth * (music.currentTime / duration);
-    playhead.style.marginLeft = playPercent + "px";
-    if (music.currentTime === duration) {
-        pButton.className = "";
-        pButton.className = "fa fa-play";
+    let playPercent = playa.timelineWidth * (playa.music.currentTime / playa.duration);
+    playa.playhead.style.marginLeft = playPercent + "px";
+    if (playa.music.currentTime === playa.duration) {
+        playa.pButton.className = "";
+        playa.pButton.className = "fa fa-play";
     }
 }
 
 //Play and Pause
 function play() {
     // start music
-    if (music.paused) {
-        music.play();
-        pButton.className = "";
-        pButton.className = "fa fa-pause";
+    if (playa.music.paused) {
+        playa.music.play();
+        playa.pButton.className = "";
+        playa.pButton.className = "fa fa-pause";
     } else { // pause music
-        music.pause();
-        pButton.className = "";
-        pButton.className = "fa fa-play";
+        playa.music.pause();
+        playa.pButton.className = "";
+        playa.pButton.className = "fa fa-play";
     }
 }
-
-// Gets audio file duration
-music.addEventListener("canplaythrough", function () {
-    duration = music.duration;
-}, false);
 
 // getPosition
 // Returns elements left position relative to top-left of viewport
@@ -162,7 +172,7 @@ function addAlbums(albums) {
             });
             let content = await rawResponse.json();
 
-            addTitles(content.results, divRow);
+            addTitles(content.results, divRow, playa);
         });
 
         divRow.appendChild(divArtist);
@@ -175,7 +185,7 @@ function addAlbums(albums) {
 }
 
 
-function addTitles(titles, elAlbum) {
+function addTitles(titles, elAlbum, playa) {
 
     let container = document.getElementById(elAlbum.id + '_titles');
 
@@ -226,17 +236,17 @@ function addTitles(titles, elAlbum) {
 
         insertAfter(newTitlesRowDiv, elAlbum);
 
-        music.addEventListener('ended', function () {
-            if (music.hasChildNodes()) {
-                music.removeChild(music.firstChild);
-                if (music.hasChildNodes()) {
-                    let src = music.firstChild.getAttribute('src');
+        playa.music.addEventListener('ended', function () {
+            if (playa.music.hasChildNodes()) {
+                playa.music.removeChild(playa.music.firstChild);
+                if (playa.music.hasChildNodes()) {
+                    let src = playa.music.firstChild.getAttribute('src');
                     let playingDivRow = document.querySelector("[data-src='" + src + "']");
                     unmarkPlayedTrack(playingDivRow);
                     markPlayedTrack(playingDivRow);
 
                     // muß eventuell am ende immer gemacht werden
-                    playerReload(music);
+                    playerReload(playa.music);
                 }
             }
         });
@@ -277,9 +287,9 @@ function addTitles(titles, elAlbum) {
             divRow.addEventListener('click', function () {
                 unmarkPlayedTrack(divRow);
                 markPlayedTrack(divRow);
-                removeTracks(music);
-                addTracks(music, divRow);
-                playerReload(music);
+                removeTracks(playa.music);
+                addTracks(playa.music, divRow);
+                playerReload(playa.music);
             });
 
             divRow.appendChild(newDiv1);
